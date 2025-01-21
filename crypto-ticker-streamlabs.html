@@ -12,13 +12,13 @@
             color: white;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            height: 80px;
+            height: 60px;
         }
 
         .ticker-container {
             white-space: nowrap;
-            height: 80px;
-            line-height: 80px;
+            height: 60px;
+            line-height: 60px;
             position: relative;
             overflow: hidden;
             display: flex;
@@ -26,14 +26,14 @@
 
         .ticker-scroll {
             display: inline-flex;
-            animation: scroll 20s linear infinite;
+            animation: scroll 40s linear infinite;
             padding-right: 50px;
         }
 
         .ticker-item {
             display: inline-block;
             margin: 0 20px;
-            font-size: 44px;
+            font-size: 20px;
             white-space: nowrap;
         }
 
@@ -72,7 +72,7 @@
     <script>
         const ticker = document.getElementById('ticker');
         const tickerClone = document.getElementById('ticker-clone');
-        const scrollDuration = 60 * 1000; // 60 seconds
+        const scrollDuration = 40 * 1000; // 40 seconds
 
         function formatPrice(price) {
             if (price >= 1000) {
