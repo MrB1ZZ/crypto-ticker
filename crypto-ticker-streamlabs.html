@@ -24,7 +24,7 @@
 
         .ticker-scroll {
             display: inline-block;
-            animation: scroll 30s linear infinite;
+            animation: scroll 20s linear infinite;
         }
 
         .ticker-item {
@@ -49,8 +49,11 @@
             0% {
                 transform: translateX(100%);
             }
-            100% {
+            95% {
                 transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(101%); /* Ensures seamless looping */
             }
         }
     </style>
@@ -64,9 +67,10 @@
 
     <script>
         const ticker = document.getElementById('ticker');
-        const cycleDuration = 30 * 1000; // 30 seconds
-        const preloadDataTime = 20 * 1000; // 20 seconds
-
+        const scrollDuration = 20 * 1000; // 20 seconds for one full scroll
+        const apiFetchInterval = 15 * 1000; // Fetch new data every 15 seconds
+        const gapToNextCycle = 1 * 1000; // 1 second gap between cycles
+        let currentData = []; // Holds the currently displayed ticker data
         let nextData = []; // Preloaded data for the next cycle
 
         async function fetchCryptoData() {
@@ -99,25 +103,35 @@
                 `;
                 ticker.appendChild(item);
             });
+
+            // Duplicate tickers for seamless scrolling
+            const clone = ticker.cloneNode(true);
+            ticker.appendChild(clone);
+        }
+
+        async function preloadNextData() {
+            nextData = await fetchCryptoData();
         }
 
         async function startTicker() {
             // Fetch initial data
-            const initialData = await fetchCryptoData();
-            updateTicker(initialData);
+            currentData = await fetchCryptoData();
+            updateTicker(currentData);
 
-            // Start the loop
+            // Start API data fetching every 15 seconds
             setInterval(async () => {
-                // 20 seconds into the cycle, preload the next data
-                setTimeout(async () => {
-                    nextData = await fetchCryptoData();
-                }, preloadDataTime);
+                nextData = await fetchCryptoData();
+            }, apiFetchInterval);
 
-                // After 30 seconds, update the ticker with the preloaded data
+            // Start the scroll cycle
+            setInterval(() => {
+                // Update ticker with preloaded data at the start of the cycle
                 setTimeout(() => {
-                    updateTicker(nextData);
-                }, cycleDuration);
-            }, cycleDuration);
+                    currentData = nextData;
+                    updateTicker(currentData);
+                }, scrollDuration);
+
+            }, scrollDuration + gapToNextCycle);
         }
 
         // Start the ticker
