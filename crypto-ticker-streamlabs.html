@@ -24,7 +24,7 @@
 
         .ticker-scroll {
             display: inline-block;
-            animation: scroll 60s linear infinite;
+            animation: scroll 30s linear infinite;
         }
 
         .ticker-item {
@@ -64,29 +64,30 @@
 
     <script>
         const ticker = document.getElementById('ticker');
-        const scrollDuration = 60 * 1000; // 60 seconds
+        const cycleDuration = 30 * 1000; // 30 seconds
+        const preloadDataTime = 20 * 1000; // 20 seconds
+
+        let nextData = []; // Preloaded data for the next cycle
 
         async function fetchCryptoData() {
             try {
                 const response = await fetch(
                     'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false'
                 );
-                const data = await response.json();
-                
-                // Update the ticker content
-                updateTicker(data);
+                return await response.json();
             } catch (error) {
                 console.error('Error fetching crypto data:', error);
+                return [];
             }
         }
 
         function updateTicker(data) {
-            ticker.innerHTML = ''; // Clear the existing ticker content
-            
+            ticker.innerHTML = ''; // Clear existing ticker content
+
             data.forEach((coin) => {
                 const priceChangeClass = coin.price_change_percentage_24h >= 0 ? 'price-up' : 'price-down';
                 const arrow = coin.price_change_percentage_24h >= 0 ? '▲' : '▼';
-                
+
                 const item = document.createElement('div');
                 item.className = 'ticker-item';
                 item.innerHTML = `
@@ -100,14 +101,26 @@
             });
         }
 
-        function startTicker() {
+        async function startTicker() {
             // Fetch initial data
-            fetchCryptoData();
+            const initialData = await fetchCryptoData();
+            updateTicker(initialData);
 
-            // Refresh data at the start of every scroll cycle
-            setInterval(fetchCryptoData, scrollDuration);
+            // Start the loop
+            setInterval(async () => {
+                // 20 seconds into the cycle, preload the next data
+                setTimeout(async () => {
+                    nextData = await fetchCryptoData();
+                }, preloadDataTime);
+
+                // After 30 seconds, update the ticker with the preloaded data
+                setTimeout(() => {
+                    updateTicker(nextData);
+                }, cycleDuration);
+            }, cycleDuration);
         }
 
+        // Start the ticker
         startTicker();
     </script>
 </body>
